@@ -29,24 +29,24 @@ class MultiAgentReplayBuffer:
             self.actor_memory[agent] = {"state": [], "action": [], "reward": [], "next_state": [], "done": []}
 
     def store_transition(self, raw_obs, state, action, reward, raw_obs_, state_, done):
-        print("\n==== Storing Transition Debugging ====")
+        # print("\n==== Storing Transition Debugging ====")
         
         for agent in raw_obs.keys():
-            print(f"Agent: {agent}")
-            print(f"  - State shape before flattening: {np.array(raw_obs[agent]).shape}")  
-            print(f"  - Next State shape before flattening: {np.array(raw_obs_[agent]).shape}")
+            # print(f"Agent: {agent}")
+            # print(f"  - State shape before flattening: {np.array(raw_obs[agent]).shape}")  
+            # print(f"  - Next State shape before flattening: {np.array(raw_obs_[agent]).shape}")
             
             # Flatten state
             raw_obs[agent] = np.array(raw_obs[agent]).flatten()
             raw_obs_[agent] = np.array(raw_obs_[agent]).flatten()
             
-            print(f"  - State shape after flattening: {raw_obs[agent].shape}")  
-            print(f"  - Next State shape after flattening: {raw_obs_[agent].shape}")
-            print(f"  - Action stored: {action[agent]}")
-            print(f"  - Reward stored: {reward[agent]}")
+            # print(f"  - State shape after flattening: {raw_obs[agent].shape}")  
+            # print(f"  - Next State shape after flattening: {raw_obs_[agent].shape}")
+            # print(f"  - Action stored: {action[agent]}")
+            # print(f"  - Reward stored: {reward[agent]}")
         
-        print(f"Centralized State shape: {np.array(state).shape}")
-        print(f"Centralized Next State shape: {np.array(state_).shape}")
+        # print(f"Centralized State shape: {np.array(state).shape}")
+        # print(f"Centralized Next State shape: {np.array(state_).shape}")
 
         # Store transition
         for agent, agent_done in zip(raw_obs.keys(), done):  
@@ -67,7 +67,7 @@ class MultiAgentReplayBuffer:
         if self.mem_cntr > self.mem_size:
             self.remove_oldest_transition()
         
-        print(f"Memory size after storing: {len(self.critic_memory['state'])}")
+        # print(f"Memory size after storing: {len(self.critic_memory['state'])}")
 
 
 

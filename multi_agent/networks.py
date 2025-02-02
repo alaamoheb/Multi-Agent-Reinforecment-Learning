@@ -24,7 +24,7 @@ class CriticNetwork(nn.Module):
         
         # Concatenate states and actions along the last dimension
         x = T.cat([states, actions], dim=-1)  # Concatenate state and action
-        print(f"Shape of input to critic (states + actions): {x.shape}")  # Debugging print
+        # print(f"Shape of input to critic (states + actions): {x.shape}")  # Debugging print
         
         # # Ensure the total size of input is 1746
         # assert x.shape[1] == 1746, f"Expected input size 1746, but got {x.shape[1]}"
@@ -35,6 +35,12 @@ class CriticNetwork(nn.Module):
         q_value = self.fc3(x)  # Output Q-value
         
         return q_value
+    
+    def save_checkpoint(self):
+        T.save(self.state_dict(), self.chkpt_file)
+
+    def load_checkpoint(self):
+        self.load_state_dict(T.load(self.chkpt_file))
 
 
 class ActorNetwork(nn.Module):
@@ -59,3 +65,9 @@ class ActorNetwork(nn.Module):
         x = F.relu(self.fc2(x)) 
         actions = F.softmax(self.fc3(x), dim=-1)  
         return actions
+    
+    def save_checkpoint(self):
+        T.save(self.state_dict(), self.chkpt_file)
+
+    def load_checkpoint(self):
+        self.load_state_dict(T.load(self.chkpt_file))

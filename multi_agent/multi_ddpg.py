@@ -171,7 +171,7 @@ class MADDPG:
             T.tensor(batch["state"][i], dtype=T.float).to(self.agents[0].actor.device)
             for i in range(len(self.possible_agents))
         ]
-        print(f"States shape: {[state.shape for state in states]}")
+        # print(f"States shape: {[state.shape for state in states]}")
         
         actions = []
         for i, agent_name in enumerate(self.possible_agents):
@@ -188,14 +188,14 @@ class MADDPG:
             rewards.append(T.tensor(reward_values, dtype=T.float).unsqueeze(0).to(self.agents[0].actor.device))  # Shape [1, num_agents]
 
         rewards = T.cat(rewards, dim=0)  # Stack into tensor of shape [batch_size, num_agents]
-        print(f"Rewards shape: {rewards.shape}")
+        # print(f"Rewards shape: {rewards.shape}")
         
         states_ = [
             T.tensor(batch["next_state"][i], dtype=T.float).to(self.agents[0].actor.device)
             for i in range(len(self.possible_agents))
         ]
         
-        print(f"Next States shape: {[state.shape for state in states_]}")
+        # print(f"Next States shape: {[state.shape for state in states_]}")
 
         dones = []
         for i, agent_name in enumerate(self.possible_agents):
@@ -204,18 +204,18 @@ class MADDPG:
             dones.append(done)
 
         states = T.stack(states)
-        print(f"Stacked states shape: {states.shape}")
+        # print(f"Stacked states shape: {states.shape}")
         
         actions = T.stack(actions)
-        print("&&&&&&&&&&&&&&")
-        print(f"Actions shape: {actions.shape}")
+        # print("&&&&&&&&&&&&&&")
+        # print(f"Actions shape: {actions.shape}")
         states_ = T.stack(states_)
         dones = T.stack(dones).view(-1, len(self.possible_agents))  # Ensure shape (1024, 2)
         dones = dones.squeeze(1)
 
         actions = actions.view(actions.size(0), -1) 
         states_with_actions = T.cat([states, actions], dim=-1)
-        print(f"States with actions shape: {states_with_actions.shape}")
+        # print(f"States with actions shape: {states_with_actions.shape}")
         
         # Ensure actor states and new states are correctly extracted from the actor_batch
         actor_states = []
@@ -236,12 +236,12 @@ class MADDPG:
 
             # Ensure that new_pi is not empty or None
             new_pi = agent.target_actor.forward(new_states)
-            print(f"Agent {agent_idx}: new_pi shape: {new_pi.shape if new_pi is not None else 'None'}")
+            # print(f"Agent {agent_idx}: new_pi shape: {new_pi.shape if new_pi is not None else 'None'}")
 
             if new_pi is not None:  # If new_pi is valid
                 all_agents_new_actions.append(new_pi.detach())
-            else:
-                print(f"Warning: new_pi is None for agent {agent_idx}")
+            # else:
+            #     print(f"Warning: new_pi is None for agent {agent_idx}")
 
             mu_states = T.tensor(actor_states[agent_idx], dtype=T.float).to(device)
             pi = agent.actor.forward(mu_states)
@@ -255,8 +255,8 @@ class MADDPG:
         # Now check if the list has anything to concatenate
         if all_agents_new_actions:
             new_actions = T.cat(all_agents_new_actions).clone()
-        else:
-            print("Warning: all_agents_new_actions is empty!")
+        # else:
+        #     print("Warning: all_agents_new_actions is empty!")
 
         # Proceed with the rest of your code...
 
@@ -268,9 +268,9 @@ class MADDPG:
             # Compute target Q-values (Bellman equation)
             with T.no_grad():
                 next_Q = agent.target_critic.forward(states_, new_actions).flatten()
-                print("******************************")
-                print("states_.shape:", states_.shape)
-                print("new_actions.shape:", new_actions.shape)
+                # print("******************************")
+                # print("states_.shape:", states_.shape)
+                # print("new_actions.shape:", new_actions.shape)
 
 
             target_Q = rewards[:, agent_idx].unsqueeze(-1).to(self.agents[0].actor.device)
