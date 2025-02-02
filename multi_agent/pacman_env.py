@@ -7,8 +7,6 @@ from gymnasium import spaces
 from pettingzoo import ParallelEnv
 from run import GameController
 from constants import *
-from DQN_model import CustomCNN
-from stable_baselines3 import DQN
 from stable_baselines3.dqn import MultiInputPolicy
 from pettingzoo.test import parallel_api_test
 import os
