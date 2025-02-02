@@ -61,8 +61,8 @@ ep_lengths = []
 aggr_ep_rewards = {'ep': [], 'avg': [], 'min': [], 'max': [] , 'ep_length' : []}
 
 MAX_AVG_REWARD = float("-inf")
-PLOTS_DIR = 'plots_sarsa2'
-q_tables_DIR = "q_tables_sarsa2"
+PLOTS_DIR = 'plots_sarsa_safe_mode'
+q_tables_DIR = "q_tables_sarsa_safe_mode"
 
 #training loop
 for episode in range(EPISODES):

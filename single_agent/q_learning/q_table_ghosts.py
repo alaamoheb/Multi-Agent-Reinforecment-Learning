@@ -32,7 +32,7 @@ import torch
 #####
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-q_table_path = "q_table_300_episodes.pkl"
+q_table_path = "q_table_sarsa_safe_mode/q_table_300_episodes.pkl"
 
 def init_q_table (q_table_path):
     if os.path.exists(q_table_path):
@@ -98,9 +98,9 @@ NUM_WINS = 0
 aggr_ep_rewards = {'ep': [], 'avg_score': [], 'ep_length' : [] , 'num_wins' : [] , 'level_comp_per' : []}
 
 MAX_AVG_REWARD = float("-inf")
-PLOTS_DIR_BIG = 'plots_sarsa_ghosts_rewardsAndEpisodeLengths'
-PLOTS_DIR_SMALL = 'plots_sarsa_ghosts_WinAndLevelCompletion'
-q_tables_DIR = "q_tables_sarsa_ghosts_complete"
+PLOTS_DIR_BIG = 'plots_sarsa_normal_rewardsAndEpisodeLengths'
+PLOTS_DIR_SMALL = 'plots_sarsa_normal_WinAndLevelCompletion'
+q_tables_DIR = "q_tables_sarsa_normal_mode"
 
 
 def tensor_to_tuple(tensor):
