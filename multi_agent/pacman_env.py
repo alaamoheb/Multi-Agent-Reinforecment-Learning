@@ -279,10 +279,10 @@ if __name__ == "__main__":
         env=env
     )
 
-    num_episodes = 50000
+    num_episodes = 500000
     MAX_STEPS = 1000
     n_agents = len(possible_agents)
-    PRINT_INTERVAL =  5
+    PRINT_INTERVAL =  1
     total_steps = 0
     best_score = -np.inf 
     score_history = []
@@ -292,28 +292,31 @@ if __name__ == "__main__":
     is_training = True
     evaluate = False
     
-    
     episode_rewards = []
     pacman_rewards = []
     ghost_rewards = []
+    episode_lengths = []
+    win_rates = []
+    pacman_wins = 0  # Track Pacman's victories
+    
 
-    actor_losses = []
-    critic_losses = []
+    # actor_losses = []
+    # critic_losses = []
     
     episode_lengths = []
     def plot_training():
         plt.figure(figsize=(20, 10))
 
         # Total Episode Reward (Top-left)
-        plt.subplot(2, 3, 1)
+        plt.subplot(2, 2, 1)
         plt.plot(episode_rewards, label="Total Reward")
         plt.xlabel("Episodes")
         plt.ylabel("Reward")
         plt.title("Total Episode Reward")
         plt.legend()
 
-        # Agent-Specific Rewards (Top-middle)
-        plt.subplot(2, 3, 2)
+        # Agent-Specific Rewards (Top-right)
+        plt.subplot(2, 2, 2)
         plt.plot(pacman_rewards, label="Pacman Reward", color="blue")
         plt.plot(ghost_rewards, label="Ghosts Reward", color="orange")
         plt.xlabel("Episodes")
@@ -321,40 +324,28 @@ if __name__ == "__main__":
         plt.title("Agent-Specific Rewards")
         plt.legend()
 
-        # Average Episode Length (Top-right)
+        # Average Episode Length (Bottom-left)
+        # Calculate the running average to smooth the curve
         mean_episode_lengths = np.cumsum(episode_lengths) / np.arange(1, len(episode_lengths) + 1)
-        plt.subplot(2, 3, 3)
+        plt.subplot(2, 2, 3)
         plt.plot(mean_episode_lengths, label="Average Episode Length", color="green")
         plt.xlabel("Episodes")
         plt.ylabel("Average Length")
         plt.title("Average Episode Length")
         plt.legend()
 
-        # Actor Loss (Bottom-left)
-        plt.subplot(2, 3, 4)
-        plt.plot(actor_losses, label='Actor Loss')
-        plt.xlabel('Episode')
-        plt.ylabel('Loss')
-        plt.title('Actor Loss over Time')
+        # Win Rate (Bottom-right)
+        plt.subplot(2, 2, 4)
+        plt.plot(win_rates, label="Pacman Win Rate", color="gold")
+        plt.xlabel("Episodes")
+        plt.ylabel("Win Rate")
+        plt.title("Pacman Win Rate Over Time")
         plt.legend()
 
-        # Critic Loss (Bottom-middle)
-        plt.subplot(2, 3, 5)
-        plt.plot(critic_losses, label='Critic Loss')
-        plt.xlabel('Episode')
-        plt.ylabel('Loss')
-        plt.title('Critic Loss over Time')
-        plt.legend()
-
-        # Empty subplot for spacing (Bottom-right)
-        plt.subplot(2, 3, 6)
-        plt.axis('off')
-
-        # Save the combined plot
-        plot_filename = os.path.join(plot_dir, f"training_plot_episode_{episode}.png")
         plt.tight_layout()
-        plt.savefig(plot_filename)
+        plt.savefig(os.path.join(plot_dir, f"training_plot_episode_{episode}.png"))
         plt.close()
+
         
 
     if is_training:
@@ -364,10 +355,10 @@ if __name__ == "__main__":
                 score = 0
                 done = [False] * n_agents
                 episode_step = 0
-                pacman_episode_reward = 0
-                ghost_episode_reward = 0
-                total_reward = 0
+                total_reward, pacman_episode_reward, ghost_episode_reward = 0, 0, 0
+                
                 episode_length = 0 
+                pacman_win = False
                 
                 
                 while not any(done):
@@ -383,43 +374,56 @@ if __name__ == "__main__":
                     state = obs_list_to_state_vector([obs[agent] for agent in env.possible_agents])
                     state_ = obs_list_to_state_vector([obs_[agent] for agent in env.possible_agents])
 
-                    if episode_step >= MAX_STEPS:
-                        done = [True] * n_agents
+                    # if episode_step >= MAX_STEPS:
+                    #     done = [True] * n_agents
 
                     total_reward += sum(rewards.values())
                     pacman_episode_reward += rewards["pacman"]
                     ghost_episode_reward += rewards["ghost"]
+                    
+                    episode_length += 1
+                    
+                    if "pacman_won" in info and info["pacman_won"]:  # Check if Pacman won
+                        pacman_win = True
 
                     memory.store_transition(obs, state, actions, rewards, obs_, state_, done)
 
                     # Perform learning every step
                     maddpg_agents.learn(memory)
 
-                    # Track losses for each agent after learning step
-                    for agent in maddpg_agents.agents:
-                        actor_losses.append(agent.actor_loss)  # Capture the actor loss
-                        critic_losses.append(agent.critic_loss)  # Capture the critic loss
+                    # # Track losses for each agent after learning step
+                    # for agent in maddpg_agents.agents:
+                    #     # print(f"Actor Loss: {agent.actor_loss}, Critic Loss: {agent.critic_loss}")
+                    #     actor_losses.append(agent.actor_loss)  # Capture the actor loss
+                    #     critic_losses.append(agent.critic_loss)  # Capture the critic loss
 
                     obs = obs_
+                    
                     score += sum(rewards.values())
+                    
                     episode_step += 1
-                    episode_length += 1  # This is where the episode length is updated
-
                     total_steps += 1
+                    
+                    done = [terminated[agent] or truncated[agent] for agent in env.possible_agents]
 
-                # After each episode ends, append the episode length to the list
-                episode_lengths.append(episode_length)
+            
 
                 # Track rewards for each agent
                 episode_rewards.append(total_reward)
                 pacman_rewards.append(pacman_episode_reward)
                 ghost_rewards.append(ghost_episode_reward)
+                
+                # After each episode ends, append the episode length to the list
+                episode_lengths.append(episode_length)
 
-
-                score_history.append(score)
-                avg_score = np.mean(score_history[-100:])
+                # score_history.append(score)
+                # avg_score = np.mean(score_history[-100:])
                 # print(f"Episode {episode}, Score: {score}, Average Score: {avg_score:.2f}, Total Reward: {total_reward:.2f}")
-
+                
+                if pacman_win:
+                    pacman_wins += 1
+                win_rates.append(pacman_wins / (episode + 1))  # Track win rate over time
+                
                 # Save plot every PRINT_INTERVAL episodes
                 if episode % PRINT_INTERVAL == 0 and episode > 0:
                     print(f"Episode {episode} - Plotting and saving rewards")
