@@ -275,14 +275,14 @@ if __name__ == "__main__":
         possible_agents=possible_agents,
         n_agents=len(env.possible_agents),
         n_actions=n_actions,
-        batch_size=500,
+        batch_size=1024,
         env=env
     )
 
     num_episodes = 500000
     MAX_STEPS = 1000
     n_agents = len(possible_agents)
-    PRINT_INTERVAL =  1
+    PRINT_INTERVAL =  10
     total_steps = 0
     best_score = -np.inf 
     score_history = []
