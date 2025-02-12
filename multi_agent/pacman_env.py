@@ -234,7 +234,7 @@ if __name__ == "__main__":
     # os.makedirs(model_path, exist_ok=True)
     os.makedirs(chkpt_dir, exist_ok=True)
 
-    env = env_render
+    env = env_not_render
     possible_agents = env.possible_agents 
     
     actor_dims = []
@@ -279,7 +279,7 @@ if __name__ == "__main__":
         env=env
     )
 
-    num_episodes = 5
+    num_episodes = 500000
     MAX_STEPS = 1000
     n_agents = len(possible_agents)
     PRINT_INTERVAL =  1
