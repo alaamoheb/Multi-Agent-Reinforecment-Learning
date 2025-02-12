@@ -226,7 +226,7 @@ os.makedirs(plot_dir, exist_ok=True)
 # Initialize environment and other components
 if __name__ == "__main__":
     env_not_render = PacmanEnv(render_mode=None, mode=SCARY_1_MODE, move_mode=DISCRETE_STEPS_MODE, clock_tick=0, pacman_lives=3, maze_mode=MAZE1, pac_pos_mode=RANDOM_PAC_POS)
-    env_render = PacmanEnv(render_mode="human", mode=SCARY_1_MODE, move_mode=DISCRETE_STEPS_MODE, clock_tick=10, pacman_lives=3, maze_mode=MAZE1, pac_pos_mode=RANDOM_PAC_POS)
+    env_render = PacmanEnv(render_mode="human", mode=SCARY_1_MODE, move_mode=DISCRETE_STEPS_MODE, clock_tick=0, pacman_lives=3, maze_mode=MAZE1, pac_pos_mode=RANDOM_PAC_POS)
 
     # model_path = "./models/maddpg"
     chkpt_dir = "./tmp/maddpg/"
@@ -289,8 +289,8 @@ if __name__ == "__main__":
     
     
 
-    is_training = True
-    evaluate = False
+    is_training = False
+    evaluate = True
     
     episode_rewards = []
     pacman_rewards = []
@@ -346,7 +346,36 @@ if __name__ == "__main__":
         plt.savefig(os.path.join(plot_dir, f"training_plot_episode_{episode}.png"))
         plt.close()
 
+    if evaluate:
+        print("Evaluating the trained MADDPG model...")
+        maddpg_agents.load_checkpoint()  
         
+        num_eval_episodes = 20  
+        eval_rewards = []
+
+        for episode in range(num_eval_episodes):
+            obs, _ = env_render.reset()
+            done = [False] * len(env_render.possible_agents)
+            total_reward = 0
+
+            while not any(done):
+                actions = {}
+                for agent in env_render.possible_agents:
+                    raw_obs = [obs[agent] for agent in env_render.possible_agents]
+                    actions = maddpg_agents.choose_action(raw_obs)  
+                    
+                obs_, rewards, terminated, truncated, info = env_render.step(actions)
+
+                total_reward += sum(rewards.values())
+                done = [terminated[agent] or truncated[agent] for agent in env_render.possible_agents]
+                obs = obs_
+
+            eval_rewards.append(total_reward)
+            print(f"Episode {episode+1}/{num_eval_episodes}, Total Reward: {total_reward}")
+
+        # Calculate average evaluation reward
+        avg_eval_reward = np.mean(eval_rewards)
+        print(f"Average Evaluation Reward: {avg_eval_reward}")
 
     if is_training:
             print("Training new MADDPG model...")
@@ -430,8 +459,10 @@ if __name__ == "__main__":
                     plot_training()  # Plot and save rewards
 
                 # Save model checkpoint 
-                maddpg_agents.save_checkpoint()
+                if not evaluate:
+                    maddpg_agents.save_checkpoint()
 
             # Save the final model after all episodes are complete
             print("Training Completed!")
-
+            
+    
