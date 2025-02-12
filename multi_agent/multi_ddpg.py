@@ -178,7 +178,9 @@ class MADDPG:
             action = batch["action"][i]  # action is a dictionary {agent_name: action_value}
             # print(f"Actions: {action}")
             action_for_agent = action[agent_name]  # Extract the action for the current agent
-            actions.append(T.tensor(action_for_agent, device=self.agents[0].actor.device))
+            # actions.append(T.tensor(action_for_agent, device=self.agents[0].actor.device))
+            actions.append(action_for_agent.clone().detach().to(self.agents[0].actor.device))
+
         
         
 
@@ -232,7 +234,9 @@ class MADDPG:
         old_agents_actions = []
 
         for agent_idx, agent in enumerate(self.agents):
-            new_states = T.tensor(actor_new_states[agent_idx], dtype=T.float).to(device)
+            # new_states = T.tensor(actor_new_states[agent_idx], dtype=T.float).to(device)
+            new_states = T.from_numpy(np.array(actor_new_states[agent_idx])).float().to(device)
+
 
             # Ensure that new_pi is not empty or None
             new_pi = agent.target_actor.forward(new_states)
@@ -243,7 +247,9 @@ class MADDPG:
             # else:
             #     print(f"Warning: new_pi is None for agent {agent_idx}")
 
-            mu_states = T.tensor(actor_states[agent_idx], dtype=T.float).to(device)
+            # mu_states = T.tensor(actor_states[agent_idx], dtype=T.float).to(device)
+            mu_states = T.tensor(np.array(actor_states[agent_idx]), dtype=T.float).to(device)
+
             pi = agent.actor.forward(mu_states)
             all_agents_new_mu_actions.append(pi)
 
